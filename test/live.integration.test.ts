@@ -62,12 +62,12 @@ describe("live: brew CLI", () => {
       ctx.skip();
       return;
     }
-    const out = await outdatedCommand();
+    const out = await outdatedCommand([]);
     if (typeof out.outdated === "string") {
       expect(out.outdated).toBe("0 outdated");
     } else {
       expect(Array.isArray(out.outdated)).toBe(true);
-      expect(typeof out.count).toBe("number");
+      expect(["number", "string"]).toContain(typeof out.count);
     }
   });
 
@@ -76,11 +76,11 @@ describe("live: brew CLI", () => {
       ctx.skip();
       return;
     }
-    const out = await installedCommand();
+    const out = await installedCommand([]);
     if (typeof out.installed === "string") {
       expect(out.installed).toBe("0 formulae or casks installed");
     } else {
-      expect(typeof out.count).toBe("number");
+      expect(["number", "string"]).toContain(typeof out.count);
       expect(out.formulae ?? out.casks).toBeDefined();
     }
   });

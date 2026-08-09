@@ -16,6 +16,8 @@ export interface FormulaJson {
   disabled?: boolean;
   disable_reason?: string | null;
   analytics?: AnalyticsBlock;
+  /** formulae.brew.sh returns many more fields than we surface by default; --fields opts into them. */
+  [field: string]: unknown;
 }
 
 export interface CaskJson {
@@ -30,6 +32,8 @@ export interface CaskJson {
   disabled?: boolean;
   disable_reason?: string | null;
   analytics?: AnalyticsBlock;
+  /** formulae.brew.sh returns many more fields than we surface by default; --fields opts into them. */
+  [field: string]: unknown;
 }
 
 export type AnalyticsPeriod = "30d" | "90d" | "365d";

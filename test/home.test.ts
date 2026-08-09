@@ -66,6 +66,23 @@ describe("home", () => {
     expect(Array.isArray(out.help)).toBe(true);
   });
 
+  it("caps the ambient outdated list to 10 rows and hints at the full count", async () => {
+    const { homeCommand } = await import("../src/home.js");
+    const outdatedFormulae = Array.from({ length: 15 }, (_, i) => ({
+      name: `pkg${i}`,
+      installed_versions: ["1"],
+      current_version: "2",
+    }));
+    respondJson({ formulae: outdatedFormulae, casks: [] });
+    respondText(Array.from({ length: 20 }, (_, i) => `pkg${i} 1`).join("\n"));
+    respondText("");
+    const out = await homeCommand();
+    expect((out.outdated as unknown[]).length).toBe(10);
+    expect(out.help).toContain(
+      "Run `homebrew-axi outdated` to see all 15 outdated packages",
+    );
+  });
+
   it("returns a small help list instead of an error when brew is missing", async () => {
     const { homeCommand } = await import("../src/home.js");
     respondEnoent();

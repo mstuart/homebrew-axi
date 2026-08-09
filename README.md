@@ -83,30 +83,31 @@ A formula with no dependencies returns a definitive empty state:
 
 ```sh
 $ homebrew-axi outdated
-count: 75
-outdated[75]{name,installed,latest}:
+count: "50 of 75 total"
+outdated[50]{name,installed,latest}:
   ada-url,3.4.4,4.0.0
   beads,1.0.3,1.1.2
   c-ares,1.34.6,1.34.8
   ...
+help[2]: Run `homebrew-axi info <name>` for details on a specific package,Run `homebrew-axi outdated --limit 100` for more results
 ```
 
-Nothing outdated returns `outdated: 0 outdated`.
+Capped to 50 rows by default (500 max); pass `--limit N` to see more. Nothing outdated
+returns `outdated: 0 outdated`.
 
 ### installed
 
 ```sh
 $ homebrew-axi installed
-count: 139
-formulae[135]{name,version}:
+count: "50 of 139 total"
+formulae[50]{name,version}:
   ada-url,3.4.4
   bash,5.3.15
   ...
-casks[4]{name,version}:
-  claudebar,0.4.63
-  gcloud-cli,564.0.0
-  ...
 ```
+
+Capped to 50 rows by default (500 max), splitting the budget across formulae then
+casks; pass `--limit N` to see more.
 
 ### search
 
@@ -118,7 +119,8 @@ casks[6]: db-browser-for-sqlite,db-browser-for-sqlite@nightly,navicat-for-sqlite
 help[1]: Run `homebrew-axi info <name>` for details on a specific package
 ```
 
-No matches returns `packages: 0 packages found for "<query>"`.
+Capped to 20 rows by default (250 max); pass `--limit N` to see more. No matches
+returns `packages: 0 packages found for "<query>"`.
 
 ### Errors
 
@@ -135,9 +137,10 @@ erroring.
 
 ### No arguments
 
-Running `homebrew-axi` with no arguments shows outdated installed packages at a glance — the same
-data as `outdated`, plus a `count: N of M installed are outdated` line against every installed
-formula and cask.
+Running `homebrew-axi` with no arguments shows outdated installed packages at a glance — a
+`count: N of M installed are outdated` line against every installed formula and cask, plus the
+first 10 outdated rows (with a hint to run `outdated` for the full list, which itself shows up to
+50 by default).
 
 ## Agent integration
 
@@ -166,7 +169,7 @@ You only need one of these — they complement each other when both are installe
 | # | Principle | In homebrew-axi |
 | --- | --- | --- |
 | 1 | Token-efficient output | TOON on stdout via `axi-sdk-js` |
-| 2 | Minimal default schemas | `search`/`outdated`/`installed` return name + version-shaped rows |
+| 2 | Minimal default schemas | `search`/`outdated`/`installed` return name + version-shaped rows; `info --fields` opts into extra raw fields |
 | 3 | Content truncation | `info` description preview with `descChars` + `--full`; caveats gated behind `--full` |
 | 4 | Pre-computed aggregates | total counts, `depCount`, `installs30d`/`90d`/`365d` |
 | 5 | Definitive empty states | `0 outdated`, `0 dependencies for <name>`, `0 packages found for "<query>"` |

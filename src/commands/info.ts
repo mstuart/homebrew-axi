@@ -9,21 +9,31 @@ import {
 import { assertKnownFlags, parseFlags } from "../args.js";
 import { collapseWhitespace } from "../format.js";
 
-const USAGE = "homebrew-axi info <name> [--cask] [--full]";
+const USAGE = "homebrew-axi info <name> [--cask] [--full] [--fields a,b,c]";
 const DESC_PREVIEW = 600;
+const CAVEATS_PREVIEW = 300;
 
 export async function infoCommand(args: string[]): Promise<Record<string, unknown>> {
   const { positionals, flags } = parseFlags(args, ["full", "cask"]);
-  assertKnownFlags(flags, ["full", "cask"], USAGE);
+  assertKnownFlags(flags, ["full", "cask", "fields"], USAGE);
   const name = positionals[0];
   if (!name) {
     throw new AxiError("a package name is required", "VALIDATION_ERROR", [USAGE]);
   }
 
   const full = flags.full === true;
+  const fields = parseFields(flags.fields);
   return flags.cask === true
-    ? formatCask(await fetchCask(name), full)
-    : formatFormula(await fetchFormula(name), full);
+    ? formatCask(await fetchCask(name), full, fields)
+    : formatFormula(await fetchFormula(name), full, fields);
+}
+
+function parseFields(value: string | boolean | undefined): string[] {
+  if (typeof value !== "string") return [];
+  return value
+    .split(",")
+    .map((field) => field.trim())
+    .filter((field) => field.length > 0);
 }
 
 function withDescription(
@@ -53,12 +63,18 @@ function withCaveats(
   full: boolean,
 ): void {
   if (!caveats) return;
+  const collapsed = collapseWhitespace(caveats);
   if (full) {
     out.caveats = caveats.trim();
     return;
   }
+  if (collapsed.length <= CAVEATS_PREVIEW) {
+    out.caveats = collapsed;
+    return;
+  }
+  out.caveats = `${collapsed.slice(0, CAVEATS_PREVIEW).trimEnd()} …`;
   help.push(
-    `Run \`homebrew-axi info ${name}${caskFlag ? " --cask" : ""} --full\` to see caveats`,
+    `Run \`homebrew-axi info ${name}${caskFlag ? " --cask" : ""} --full\` to see the complete caveats`,
   );
 }
 
@@ -86,7 +102,20 @@ function withInstalls(out: Record<string, unknown>, data: FormulaJson | CaskJson
   if (installs365d !== undefined) out.installs365d = installs365d;
 }
 
-function formatFormula(formula: FormulaJson, full: boolean): Record<string, unknown> {
+/** Opt-in fields beyond the default schema, requested via `--fields a,b,c`. */
+function withFields(
+  out: Record<string, unknown>,
+  data: Record<string, unknown>,
+  fields: string[],
+): void {
+  for (const field of fields) {
+    if (field in out) continue;
+    const value = data[field];
+    if (value !== undefined) out[field] = value;
+  }
+}
+
+function formatFormula(formula: FormulaJson, full: boolean, fields: string[]): Record<string, unknown> {
   const help: string[] = [];
   const out: Record<string, unknown> = { name: formula.name };
   withDescription(out, help, formula.name, formula.desc, full);
@@ -100,6 +129,7 @@ function formatFormula(formula: FormulaJson, full: boolean): Record<string, unkn
   withInstalls(out, formula, formula.name);
   withLifecycleFlags(out, formula);
   withCaveats(out, help, formula.name, false, formula.caveats, full);
+  withFields(out, formula, fields);
 
   if (depCount > 0) {
     help.push(`Run \`homebrew-axi deps ${formula.name}\` to see the dependency breakdown`);
@@ -108,7 +138,7 @@ function formatFormula(formula: FormulaJson, full: boolean): Record<string, unkn
   return out;
 }
 
-function formatCask(cask: CaskJson, full: boolean): Record<string, unknown> {
+function formatCask(cask: CaskJson, full: boolean, fields: string[]): Record<string, unknown> {
   const help: string[] = [];
   const out: Record<string, unknown> = { name: cask.token };
   if (cask.name && cask.name.length > 0) out.title = cask.name[0];
@@ -119,6 +149,7 @@ function formatCask(cask: CaskJson, full: boolean): Record<string, unknown> {
   withInstalls(out, cask, cask.token);
   withLifecycleFlags(out, cask);
   withCaveats(out, help, cask.token, true, cask.caveats, full);
+  withFields(out, cask, fields);
 
   if (help.length > 0) out.help = help;
   return out;

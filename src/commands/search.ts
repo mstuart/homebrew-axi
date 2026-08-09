@@ -1,6 +1,10 @@
 import { AxiError } from "axi-sdk-js";
-import { parseFlags } from "../args.js";
+import { assertKnownFlags, parseFlags, parseLimit, splitByLimit } from "../args.js";
 import { brewRaw, isNoMatchesError, mapBrewError } from "../brew.js";
+
+const USAGE = 'homebrew-axi search "<query>" [--limit N]';
+const DEFAULT_LIMIT = 20;
+const MAX_LIMIT = 250;
 
 function parseNames(text: string): string[] {
   return text
@@ -22,14 +26,14 @@ async function searchScope(scope: "--formula" | "--cask", query: string): Promis
 }
 
 export async function searchCommand(args: string[]): Promise<Record<string, unknown>> {
-  const { positionals } = parseFlags(args);
+  const { positionals, flags } = parseFlags(args);
+  assertKnownFlags(flags, ["limit"], USAGE);
   const query = positionals.join(" ").trim();
   if (!query) {
-    throw new AxiError("a search query is required", "VALIDATION_ERROR", [
-      'homebrew-axi search "<query>"',
-    ]);
+    throw new AxiError("a search query is required", "VALIDATION_ERROR", [USAGE]);
   }
 
+  const limit = parseLimit(flags.limit, DEFAULT_LIMIT, MAX_LIMIT);
   const [formulae, casks] = await Promise.all([
     searchScope("--formula", query),
     searchScope("--cask", query),
@@ -40,9 +44,20 @@ export async function searchCommand(args: string[]): Promise<Record<string, unkn
     return { packages: `0 packages found for "${query}"` };
   }
 
-  const out: Record<string, unknown> = { count: total };
-  if (formulae.length > 0) out.formulae = formulae;
-  if (casks.length > 0) out.casks = casks;
-  out.help = ["Run `homebrew-axi info <name>` for details on a specific package"];
+  const { first: formulaeShown, second: casksShown } = splitByLimit(formulae, casks, limit);
+  const shown = formulaeShown.length + casksShown.length;
+
+  const out: Record<string, unknown> = {
+    count: shown === total ? total : `${shown} of ${total} total`,
+  };
+  if (formulaeShown.length > 0) out.formulae = formulaeShown;
+  if (casksShown.length > 0) out.casks = casksShown;
+
+  const help = ["Run `homebrew-axi info <name>` for details on a specific package"];
+  if (shown < total && limit < MAX_LIMIT) {
+    const more = Math.min(limit + 30, MAX_LIMIT);
+    help.push(`Run \`homebrew-axi search "${query}" --limit ${more}\` for more results`);
+  }
+  out.help = help;
   return out;
 }

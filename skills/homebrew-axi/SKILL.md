@@ -40,12 +40,12 @@ anything. For those operations, ask the user to run `brew` directly.
 
 ```
 Commands:
-  info <name> [--cask] [--full]   Formula or cask details: version, license, deps, install analytics
-  deps <name>                     Build vs runtime dependencies for a formula
-  outdated                        Outdated installed formulae and casks
-  installed                       Every installed formula and cask with its version
-  search "<query>"                Find formulae and casks by name
-  setup hooks                     Install agent session-start hooks (ambient context)
+  info <name> [--cask] [--full] [--fields a,b,c]   Formula or cask details: version, license, deps, install analytics
+  deps <name>                                      Build vs runtime dependencies for a formula
+  outdated [--limit N]                             Outdated installed formulae and casks
+  installed [--limit N]                            Every installed formula and cask with its version
+  search "<query>" [--limit N]                     Find formulae and casks by name
+  setup hooks                                      Install agent session-start hooks (ambient context)
 ```
 
 Installed copies also inherit the SDK built-in `update` command.

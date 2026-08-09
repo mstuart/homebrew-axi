@@ -49,4 +49,37 @@ describe("outdated", () => {
     expect(out.outdated).toBe("0 outdated");
     expect(out.count).toBeUndefined();
   });
+
+  it("rejects an unknown flag instead of silently dropping it", async () => {
+    const { outdatedCommand } = await import("../../src/commands/outdated.js");
+    await expect(outdatedCommand(["--stat", "closed"])).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
+  });
+
+  it("rejects a stray positional argument", async () => {
+    const { outdatedCommand } = await import("../../src/commands/outdated.js");
+    await expect(outdatedCommand(["extra-arg"])).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
+  });
+
+  it("caps results to --limit and hints at more when truncated", async () => {
+    const { outdatedCommand } = await import("../../src/commands/outdated.js");
+    respondJson({
+      formulae: [
+        { name: "a", installed_versions: ["1"], current_version: "2" },
+        { name: "b", installed_versions: ["1"], current_version: "2" },
+        { name: "c", installed_versions: ["1"], current_version: "2" },
+      ],
+      casks: [],
+    });
+    const out = await outdatedCommand(["--limit", "2"]);
+    expect(out.count).toBe("2 of 3 total");
+    expect(out.outdated).toEqual([
+      { name: "a", installed: "1", latest: "2" },
+      { name: "b", installed: "1", latest: "2" },
+    ]);
+    expect(out.help).toContain("Run `homebrew-axi outdated --limit 52` for more results");
+  });
 });
