@@ -1,5 +1,13 @@
 <h1 align="center">homebrew-axi</h1>
 
+<p align="center">
+  <a href="https://www.npmjs.com/package/homebrew-axi"><img alt="npm" src="https://img.shields.io/npm/v/homebrew-axi?style=flat-square" /></a>
+  <a href="https://github.com/mstuart/homebrew-axi/actions/workflows/ci.yml"><img alt="CI" src="https://img.shields.io/github/actions/workflow/status/mstuart/homebrew-axi/ci.yml?style=flat-square&label=ci" /></a>
+  <a href="https://github.com/mstuart/homebrew-axi/actions/workflows/release.yml"><img alt="Release" src="https://img.shields.io/github/actions/workflow/status/mstuart/homebrew-axi/release.yml?style=flat-square&label=release" /></a>
+  <img alt="Platform" src="https://img.shields.io/badge/platform-macOS%20%7C%20Linux-blue?style=flat-square" />
+  <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" /></a>
+</p>
+
 <p align="center">Inspect Homebrew formulae, casks, and installed packages with token-efficient output — an <a href="https://github.com/kunchenguid/axi">AXI</a> (Agent eXperience Interface).</p>
 
 ---
