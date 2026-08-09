@@ -1,6 +1,6 @@
 {
   "name": "homebrew-axi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Read-only Homebrew wrapper with token-efficient output — an AXI (Agent eXperience Interface).",
   "keywords": [
     "axi",
