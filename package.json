@@ -16,11 +16,11 @@
   "author": "Mark Stuart",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mstuart/homebrew-axi.git"
+    "url": "git+https://github.com/mstuart/homebrew-axi.git"
   },
   "type": "module",
   "bin": {
-    "homebrew-axi": "./dist/bin/homebrew-axi.js"
+    "homebrew-axi": "dist/bin/homebrew-axi.js"
   },
   "files": [
     "dist",
