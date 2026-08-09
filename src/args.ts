@@ -71,3 +71,14 @@ export function parseLimit(
   if (!Number.isFinite(parsed) || parsed < 1) return fallback;
   return Math.min(parsed, max);
 }
+
+/** Split two ordered lists (e.g. formulae/casks) across a shared limit, `first` filling before `second`. */
+export function splitByLimit<T>(
+  first: T[],
+  second: T[],
+  limit: number,
+): { first: T[]; second: T[] } {
+  const firstShown = first.slice(0, limit);
+  const secondShown = second.slice(0, Math.max(0, limit - firstShown.length));
+  return { first: firstShown, second: secondShown };
+}

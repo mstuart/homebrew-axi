@@ -64,4 +64,22 @@ describe("search", () => {
     respond(0, "", "");
     await expect(searchCommand(["x"])).rejects.toMatchObject({ code: "UNKNOWN" });
   });
+
+  it("rejects an unknown flag instead of silently dropping it", async () => {
+    const { searchCommand } = await import("../../src/commands/search.js");
+    await expect(searchCommand(["--format", "json", "foo"])).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
+  });
+
+  it("caps results to --limit, splitting the budget across formulae then casks", async () => {
+    const { searchCommand } = await import("../../src/commands/search.js");
+    respond(0, "a\nb\nc\n", "");
+    respond(0, "d\n", "");
+    const out = await searchCommand(["lib", "--limit", "2"]);
+    expect(out.count).toBe("2 of 4 total");
+    expect(out.formulae).toEqual(["a", "b"]);
+    expect(out.casks).toBeUndefined();
+    expect(out.help).toContain('Run `homebrew-axi search "lib" --limit 32` for more results');
+  });
 });

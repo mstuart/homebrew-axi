@@ -50,20 +50,32 @@ describe("info (formula)", () => {
     expect(out.descChars).toBeUndefined();
   });
 
-  it("omits caveats unless --full, and hints when caveats exist", async () => {
+  it("shows short caveats inline without needing --full", async () => {
     mockFetch({
       "formula/withcaveats.json": {
         json: { name: "withcaveats", caveats: "Some setup instructions." },
       },
     });
     const out = await infoCommand(["withcaveats"]);
-    expect(out.caveats).toBeUndefined();
+    expect(out.caveats).toBe("Some setup instructions.");
+    expect(out.help).toBeUndefined();
+  });
+
+  it("truncates long caveats to a preview and hints --full", async () => {
+    const longCaveats = "word ".repeat(100); // ~500 chars
+    mockFetch({
+      "formula/longcaveats.json": { json: { name: "longcaveats", caveats: longCaveats } },
+    });
+    const out = await infoCommand(["longcaveats"]);
+    expect((out.caveats as string).endsWith("…")).toBe(true);
+    expect((out.caveats as string).length).toBeLessThan(longCaveats.length);
     expect(out.help).toContain(
-      "Run `homebrew-axi info withcaveats --full` to see caveats",
+      "Run `homebrew-axi info longcaveats --full` to see the complete caveats",
     );
 
-    const full = await infoCommand(["withcaveats", "--full"]);
-    expect(full.caveats).toBe("Some setup instructions.");
+    const full = await infoCommand(["longcaveats", "--full"]);
+    expect(full.caveats).toBe(longCaveats.trim());
+    expect(full.help).toBeUndefined();
   });
 
   it("surfaces deprecated and disabled reasons", async () => {
@@ -81,6 +93,26 @@ describe("info (formula)", () => {
     const out = await infoCommand(["dep"]);
     expect(out.deprecated).toBe("unmaintained");
     expect(out.disabled).toBe("does not build");
+  });
+
+  it("opts into extra fields beyond the default schema via --fields", async () => {
+    mockFetch({
+      "formula/extra.json": {
+        json: { name: "extra", aliases: ["ex"], keg_only: true, desc: "d" },
+      },
+    });
+    const out = await infoCommand(["extra", "--fields", "aliases,keg_only,missing_field"]);
+    expect(out.aliases).toEqual(["ex"]);
+    expect(out.keg_only).toBe(true);
+    expect(out.missing_field).toBeUndefined();
+  });
+
+  it("does not let --fields override an already-populated default field", async () => {
+    mockFetch({
+      "formula/extra2.json": { json: { name: "extra2", desc: "real desc" } },
+    });
+    const out = await infoCommand(["extra2", "--fields", "desc"]);
+    expect(out.desc).toBe("real desc");
   });
 
   it("requires a package name", async () => {

@@ -53,4 +53,32 @@ describe("installed", () => {
     const out = await installedCommand();
     expect(out.installed).toBe("0 formulae or casks installed");
   });
+
+  it("rejects a stray positional argument instead of silently dropping it", async () => {
+    const { installedCommand } = await import("../../src/commands/installed.js");
+    await expect(installedCommand(["extra-arg"])).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
+  });
+
+  it("rejects an unknown flag", async () => {
+    const { installedCommand } = await import("../../src/commands/installed.js");
+    await expect(installedCommand(["--verbose"])).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
+  });
+
+  it("caps results to --limit, splitting the budget across formulae then casks", async () => {
+    const { installedCommand } = await import("../../src/commands/installed.js");
+    queue("a 1\nb 1\nc 1\n");
+    queue("docker 4.0.0\n");
+    const out = await installedCommand(["--limit", "2"]);
+    expect(out.count).toBe("2 of 4 total");
+    expect(out.formulae).toEqual([
+      { name: "a", version: "1" },
+      { name: "b", version: "1" },
+    ]);
+    expect(out.casks).toBeUndefined();
+    expect(out.help).toContain("Run `homebrew-axi installed --limit 52` for more results");
+  });
 });

@@ -22,8 +22,8 @@ export async function main(): Promise<void> {
     commands: {
       info: (args) => infoCommand(args),
       deps: (args) => depsCommand(args),
-      outdated: () => outdatedCommand(),
-      installed: () => installedCommand(),
+      outdated: (args) => outdatedCommand(args),
+      installed: (args) => installedCommand(args),
       search: (args) => searchCommand(args),
       setup: (args) => setupCommand(args),
     },

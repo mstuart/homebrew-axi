@@ -10,6 +10,8 @@ const HELP = [
   'Run `homebrew-axi search "<query>"` to find packages',
 ];
 
+const HOME_OUTDATED_CAP = 10;
+
 function countLines(text: string): number {
   return text.split("\n").filter((line) => line.trim().length > 0).length;
 }
@@ -38,8 +40,13 @@ export async function homeCommand(): Promise<Record<string, unknown>> {
     count: `${rows.length} of ${totalInstalled} installed are outdated`,
   };
   if (rows.length > 0) {
-    out.outdated = rows;
+    out.outdated = rows.slice(0, HOME_OUTDATED_CAP);
   }
-  out.help = HELP;
+
+  const help = [...HELP];
+  if (rows.length > HOME_OUTDATED_CAP) {
+    help.unshift(`Run \`homebrew-axi outdated\` to see all ${rows.length} outdated packages`);
+  }
+  out.help = help;
   return out;
 }
