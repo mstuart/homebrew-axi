@@ -1,10 +1,16 @@
 import { AxiError } from "axi-sdk-js";
-import { assertKnownFlags, parseFlags, parseLimit, splitByLimit } from "../args.js";
+import {
+  assertKnownFlags,
+  parseFlags,
+  parseLimit,
+  splitByLimit,
+} from "../args.js";
 import { brewExec } from "../brew.js";
 
 const USAGE = "homebrew-axi installed [--limit N]";
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 500;
+const WHITESPACE_PATTERN = /\s+/;
 
 export interface InstalledRow {
   name: string;
@@ -17,16 +23,22 @@ function parseVersionsOutput(text: string): InstalledRow[] {
     .map((line) => line.trim())
     .filter((line) => line.length > 0)
     .map((line) => {
-      const [name, ...versions] = line.split(/\s+/);
+      const [name, ...versions] = line.split(WHITESPACE_PATTERN);
       return { name, version: versions.join(", ") || "unknown" };
     });
 }
 
-export async function installedCommand(args: string[] = []): Promise<Record<string, unknown>> {
+export async function installedCommand(
+  args: string[] = []
+): Promise<Record<string, unknown>> {
   const { positionals, flags } = parseFlags(args);
   assertKnownFlags(flags, ["limit"], USAGE);
   if (positionals.length > 0) {
-    throw new AxiError(`unexpected argument "${positionals[0]}"`, "VALIDATION_ERROR", [USAGE]);
+    throw new AxiError(
+      `unexpected argument "${positionals[0]}"`,
+      "VALIDATION_ERROR",
+      [USAGE]
+    );
   }
 
   const limit = parseLimit(flags.limit, DEFAULT_LIMIT, MAX_LIMIT);
@@ -43,14 +55,22 @@ export async function installedCommand(args: string[] = []): Promise<Record<stri
     return { installed: "0 formulae or casks installed" };
   }
 
-  const { first: formulaeShown, second: casksShown } = splitByLimit(formulae, casks, limit);
+  const { first: formulaeShown, second: casksShown } = splitByLimit(
+    formulae,
+    casks,
+    limit
+  );
   const shown = formulaeShown.length + casksShown.length;
 
   const out: Record<string, unknown> = {
     count: shown === total ? total : `${shown} of ${total} total`,
   };
-  if (formulaeShown.length > 0) out.formulae = formulaeShown;
-  if (casksShown.length > 0) out.casks = casksShown;
+  if (formulaeShown.length > 0) {
+    out.formulae = formulaeShown;
+  }
+  if (casksShown.length > 0) {
+    out.casks = casksShown;
+  }
 
   const help = [
     "Run `homebrew-axi outdated` to see which installed packages have updates",
@@ -58,7 +78,9 @@ export async function installedCommand(args: string[] = []): Promise<Record<stri
   ];
   if (shown < total && limit < MAX_LIMIT) {
     const more = Math.min(limit + 50, MAX_LIMIT);
-    help.push(`Run \`homebrew-axi installed --limit ${more}\` for more results`);
+    help.push(
+      `Run \`homebrew-axi installed --limit ${more}\` for more results`
+    );
   }
   out.help = help;
   return out;

@@ -3,9 +3,9 @@
 // Registered by `module-trace-register.mjs` via `node --import`.
 import { appendFileSync } from "node:fs";
 
-const traceFile = process.env["HOMEBREW_AXI_MODULE_TRACE_FILE"];
+const traceFile = process.env.HOMEBREW_AXI_MODULE_TRACE_FILE;
 
-export async function load(url, context, nextLoad) {
+export function load(url, context, nextLoad) {
   if (traceFile) {
     appendFileSync(traceFile, `${url}\n`);
   }

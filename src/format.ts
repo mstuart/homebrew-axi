@@ -6,7 +6,9 @@ export function collapseWhitespace(text: string): string {
 /** Collapse then hard-truncate a single-line value, appending an ellipsis. */
 export function truncateLine(text: string, max: number): string {
   const line = collapseWhitespace(text);
-  if (line.length <= max) return line;
+  if (line.length <= max) {
+    return line;
+  }
   return `${line.slice(0, max).trimEnd()} …`;
 }
 

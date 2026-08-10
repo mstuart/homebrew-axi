@@ -45,7 +45,9 @@ export async function homeCommand(): Promise<Record<string, unknown>> {
 
   const help = [...HELP];
   if (rows.length > HOME_OUTDATED_CAP) {
-    help.unshift(`Run \`homebrew-axi outdated\` to see all ${rows.length} outdated packages`);
+    help.unshift(
+      `Run \`homebrew-axi outdated\` to see all ${rows.length} outdated packages`
+    );
   }
   out.help = help;
   return out;

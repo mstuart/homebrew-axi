@@ -3,35 +3,35 @@ import { AxiError } from "axi-sdk-js";
 const API_BASE = "https://formulae.brew.sh/api";
 
 export interface FormulaJson {
-  name: string;
-  desc?: string;
-  license?: string | null;
-  homepage?: string;
-  versions?: { stable?: string; head?: string | null; bottle?: boolean };
-  dependencies?: string[];
+  analytics?: AnalyticsBlock;
   build_dependencies?: string[];
   caveats?: string | null;
+  dependencies?: string[];
   deprecated?: boolean;
   deprecation_reason?: string | null;
-  disabled?: boolean;
+  desc?: string;
   disable_reason?: string | null;
-  analytics?: AnalyticsBlock;
+  disabled?: boolean;
+  homepage?: string;
+  license?: string | null;
+  name: string;
+  versions?: { stable?: string; head?: string | null; bottle?: boolean };
   /** formulae.brew.sh returns many more fields than we surface by default; --fields opts into them. */
   [field: string]: unknown;
 }
 
 export interface CaskJson {
-  token: string;
-  name?: string[];
-  desc?: string;
-  homepage?: string;
-  version?: string;
+  analytics?: AnalyticsBlock;
   caveats?: string | null;
   deprecated?: boolean;
   deprecation_reason?: string | null;
-  disabled?: boolean;
+  desc?: string;
   disable_reason?: string | null;
-  analytics?: AnalyticsBlock;
+  disabled?: boolean;
+  homepage?: string;
+  name?: string[];
+  token: string;
+  version?: string;
   /** formulae.brew.sh returns many more fields than we surface by default; --fields opts into them. */
   [field: string]: unknown;
 }
@@ -53,10 +53,12 @@ async function getJson<T>(url: string): Promise<T> {
   let response: Response;
   try {
     response = await fetch(url, { headers: { accept: "application/json" } });
-  } catch {
-    throw new AxiError("could not reach formulae.brew.sh", "NETWORK", [
+  } catch (cause) {
+    const error = new AxiError("could not reach formulae.brew.sh", "NETWORK", [
       "Check your network connection and try again",
     ]);
+    error.cause = cause;
+    throw error;
   }
   if (response.status === 404) {
     const error = new Error("HTTP 404") as Error & { status?: number };
@@ -67,43 +69,65 @@ async function getJson<T>(url: string): Promise<T> {
     throw new AxiError(
       `formulae.brew.sh returned HTTP ${response.status}`,
       "API_ERROR",
-      ["Try again in a moment"],
+      ["Try again in a moment"]
     );
   }
   try {
     return (await response.json()) as T;
-  } catch {
-    throw new AxiError(
+  } catch (cause) {
+    const error = new AxiError(
       "formulae.brew.sh returned an unexpected response",
       "API_ERROR",
-      ["Try again in a moment"],
+      ["Try again in a moment"]
     );
+    error.cause = cause;
+    throw error;
   }
 }
 
 /** Fetch a formula's JSON, translating a 404 into a NOT_FOUND AxiError. */
 export async function fetchFormula(name: string): Promise<FormulaJson> {
   try {
-    return await getJson<FormulaJson>(`${API_BASE}/formula/${encodeURIComponent(name)}.json`);
+    return await getJson<FormulaJson>(
+      `${API_BASE}/formula/${encodeURIComponent(name)}.json`
+    );
   } catch (error) {
-    if (error instanceof AxiError) throw error;
-    if ((error as { status?: number }).status === 404) throw notFound(name, "formula");
-    throw new AxiError("formulae.brew.sh returned an unexpected error", "API_ERROR", [
-      "Try again in a moment",
-    ]);
+    if (error instanceof AxiError) {
+      throw error;
+    }
+    if ((error as { status?: number }).status === 404) {
+      throw notFound(name, "formula");
+    }
+    const axiError = new AxiError(
+      "formulae.brew.sh returned an unexpected error",
+      "API_ERROR",
+      ["Try again in a moment"]
+    );
+    axiError.cause = error;
+    throw axiError;
   }
 }
 
 /** Fetch a cask's JSON, translating a 404 into a NOT_FOUND AxiError. */
 export async function fetchCask(token: string): Promise<CaskJson> {
   try {
-    return await getJson<CaskJson>(`${API_BASE}/cask/${encodeURIComponent(token)}.json`);
+    return await getJson<CaskJson>(
+      `${API_BASE}/cask/${encodeURIComponent(token)}.json`
+    );
   } catch (error) {
-    if (error instanceof AxiError) throw error;
-    if ((error as { status?: number }).status === 404) throw notFound(token, "cask");
-    throw new AxiError("formulae.brew.sh returned an unexpected error", "API_ERROR", [
-      "Try again in a moment",
-    ]);
+    if (error instanceof AxiError) {
+      throw error;
+    }
+    if ((error as { status?: number }).status === 404) {
+      throw notFound(token, "cask");
+    }
+    const axiError = new AxiError(
+      "formulae.brew.sh returned an unexpected error",
+      "API_ERROR",
+      ["Try again in a moment"]
+    );
+    axiError.cause = error;
+    throw axiError;
   }
 }
 
@@ -116,10 +140,12 @@ export async function fetchCask(token: string): Promise<CaskJson> {
 export function installsForPeriod(
   analytics: AnalyticsBlock | undefined,
   period: AnalyticsPeriod,
-  name: string,
+  name: string
 ): number | undefined {
   const bucket = analytics?.install?.[period];
-  if (!bucket) return undefined;
+  if (!bucket) {
+    return;
+  }
 
   let total = 0;
   let found = false;
