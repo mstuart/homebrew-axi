@@ -13,12 +13,19 @@ function respond(exitCode: number, stdout: string, stderr: string) {
       _cmd: string,
       _args: string[],
       _opts: unknown,
-      callback: (error: (Error & { code?: number }) | null, stdout: string, stderr: string) => void,
+      callback: (
+        error: (Error & { code?: number }) | null,
+        stdout: string,
+        stderr: string
+      ) => void
     ) => {
-      const error = exitCode === 0 ? null : Object.assign(new Error("failed"), { code: exitCode });
+      const error =
+        exitCode === 0
+          ? null
+          : Object.assign(new Error("failed"), { code: exitCode });
       callback(error, stdout, stderr);
       return new EventEmitter();
-    },
+    }
   );
 }
 
@@ -55,19 +62,25 @@ describe("search", () => {
 
   it("requires a query", async () => {
     const { searchCommand } = await import("../../src/commands/search.js");
-    await expect(searchCommand([])).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
+    await expect(searchCommand([])).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
   });
 
   it("propagates a genuine brew failure", async () => {
     const { searchCommand } = await import("../../src/commands/search.js");
     respond(1, "", "Error: something else broke\n");
     respond(0, "", "");
-    await expect(searchCommand(["x"])).rejects.toMatchObject({ code: "UNKNOWN" });
+    await expect(searchCommand(["x"])).rejects.toMatchObject({
+      code: "UNKNOWN",
+    });
   });
 
   it("rejects an unknown flag instead of silently dropping it", async () => {
     const { searchCommand } = await import("../../src/commands/search.js");
-    await expect(searchCommand(["--format", "json", "foo"])).rejects.toMatchObject({
+    await expect(
+      searchCommand(["--format", "json", "foo"])
+    ).rejects.toMatchObject({
       code: "VALIDATION_ERROR",
     });
   });
@@ -80,6 +93,8 @@ describe("search", () => {
     expect(out.count).toBe("2 of 4 total");
     expect(out.formulae).toEqual(["a", "b"]);
     expect(out.casks).toBeUndefined();
-    expect(out.help).toContain('Run `homebrew-axi search "lib" --limit 32` for more results');
+    expect(out.help).toContain(
+      'Run `homebrew-axi search "lib" --limit 32` for more results'
+    );
   });
 });

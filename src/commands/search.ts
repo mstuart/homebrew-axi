@@ -1,5 +1,10 @@
 import { AxiError } from "axi-sdk-js";
-import { assertKnownFlags, parseFlags, parseLimit, splitByLimit } from "../args.js";
+import {
+  assertKnownFlags,
+  parseFlags,
+  parseLimit,
+  splitByLimit,
+} from "../args.js";
 import { brewRaw, isNoMatchesError, mapBrewError } from "../brew.js";
 
 const USAGE = 'homebrew-axi search "<query>" [--limit N]';
@@ -18,19 +23,30 @@ function parseNames(text: string): string[] {
  * message) when a scope has zero results, even though that's a normal empty
  * result for this command — so it's shaped here rather than via `brewExec`.
  */
-async function searchScope(scope: "--formula" | "--cask", query: string): Promise<string[]> {
+async function searchScope(
+  scope: "--formula" | "--cask",
+  query: string
+): Promise<string[]> {
   const result = await brewRaw(["search", scope, query]);
-  if (result.exitCode === 0) return parseNames(result.stdout);
-  if (isNoMatchesError(result.stderr)) return [];
+  if (result.exitCode === 0) {
+    return parseNames(result.stdout);
+  }
+  if (isNoMatchesError(result.stderr)) {
+    return [];
+  }
   throw mapBrewError(result.stderr, result.exitCode);
 }
 
-export async function searchCommand(args: string[]): Promise<Record<string, unknown>> {
+export async function searchCommand(
+  args: string[]
+): Promise<Record<string, unknown>> {
   const { positionals, flags } = parseFlags(args);
   assertKnownFlags(flags, ["limit"], USAGE);
   const query = positionals.join(" ").trim();
   if (!query) {
-    throw new AxiError("a search query is required", "VALIDATION_ERROR", [USAGE]);
+    throw new AxiError("a search query is required", "VALIDATION_ERROR", [
+      USAGE,
+    ]);
   }
 
   const limit = parseLimit(flags.limit, DEFAULT_LIMIT, MAX_LIMIT);
@@ -44,19 +60,31 @@ export async function searchCommand(args: string[]): Promise<Record<string, unkn
     return { packages: `0 packages found for "${query}"` };
   }
 
-  const { first: formulaeShown, second: casksShown } = splitByLimit(formulae, casks, limit);
+  const { first: formulaeShown, second: casksShown } = splitByLimit(
+    formulae,
+    casks,
+    limit
+  );
   const shown = formulaeShown.length + casksShown.length;
 
   const out: Record<string, unknown> = {
     count: shown === total ? total : `${shown} of ${total} total`,
   };
-  if (formulaeShown.length > 0) out.formulae = formulaeShown;
-  if (casksShown.length > 0) out.casks = casksShown;
+  if (formulaeShown.length > 0) {
+    out.formulae = formulaeShown;
+  }
+  if (casksShown.length > 0) {
+    out.casks = casksShown;
+  }
 
-  const help = ["Run `homebrew-axi info <name>` for details on a specific package"];
+  const help = [
+    "Run `homebrew-axi info <name>` for details on a specific package",
+  ];
   if (shown < total && limit < MAX_LIMIT) {
     const more = Math.min(limit + 30, MAX_LIMIT);
-    help.push(`Run \`homebrew-axi search "${query}" --limit ${more}\` for more results`);
+    help.push(
+      `Run \`homebrew-axi search "${query}" --limit ${more}\` for more results`
+    );
   }
   out.help = help;
   return out;

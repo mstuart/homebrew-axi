@@ -15,7 +15,9 @@ const execFileAsync = promisify(execFile);
 
 async function networkReachable(): Promise<boolean> {
   try {
-    const response = await fetch("https://formulae.brew.sh/api/formula/wget.json");
+    const response = await fetch(
+      "https://formulae.brew.sh/api/formula/wget.json"
+    );
     return response.ok;
   } catch {
     return false;

@@ -1,6 +1,8 @@
 import { DESCRIPTION } from "./cli.js";
 import { TOP_LEVEL_HELP } from "./help.js";
 
+const COMMANDS_BLOCK_PATTERN = /^(Commands:\n(?: {2}.*\n)+)/m;
+
 // Trigger string agents match against to auto-load the skill.
 // Kept terse and outcome-focused so it fires on "needs Homebrew" intents.
 export const SKILL_DESCRIPTION =
@@ -21,7 +23,7 @@ function yamlDoubleQuote(value: string): string {
  * command list can never drift from what `homebrew-axi --help` prints.
  */
 export function extractCommandsBlock(): string {
-  const match = TOP_LEVEL_HELP.match(/^(Commands:\n(?: {2}.*\n)+)/m);
+  const match = TOP_LEVEL_HELP.match(COMMANDS_BLOCK_PATTERN);
   if (!match) {
     throw new Error("Could not find Commands block in TOP_LEVEL_HELP");
   }
