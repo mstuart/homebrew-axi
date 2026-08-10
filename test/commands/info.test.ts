@@ -8,7 +8,10 @@ afterEach(() => vi.unstubAllGlobals());
 
 function fixture(name: string): unknown {
   return JSON.parse(
-    readFileSync(fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url)), "utf-8"),
+    readFileSync(
+      fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url)),
+      "utf-8"
+    )
   );
 }
 
@@ -21,9 +24,9 @@ describe("info (formula)", () => {
     expect(out.license).toBe("GPL-3.0-or-later");
     expect(out.version).toBe("1.25.0");
     expect(out.depCount).toBe(6);
-    expect(out.installs30d).toBe(17317);
-    expect(out.installs90d).toBe(59331);
-    expect(out.installs365d).toBe(336001);
+    expect(out.installs30d).toBe(17_317);
+    expect(out.installs90d).toBe(59_331);
+    expect(out.installs365d).toBe(336_001);
     expect(out.deprecated).toBeUndefined();
     expect(out.disabled).toBeUndefined();
   });
@@ -31,7 +34,7 @@ describe("info (formula)", () => {
   it("truncates a long description and hints --full", async () => {
     const longDesc = "word ".repeat(200); // ~1000 chars
     mockFetch({
-      "formula/longdesc.json": { json: { name: "longdesc", desc: longDesc } },
+      "formula/longdesc.json": { json: { desc: longDesc, name: "longdesc" } },
     });
     const out = await infoCommand(["longdesc"]);
     expect((out.desc as string).endsWith("…")).toBe(true);
@@ -44,7 +47,7 @@ describe("info (formula)", () => {
   it("returns the full description with --full and no truncation hint", async () => {
     const longDesc = "word ".repeat(200);
     mockFetch({
-      "formula/longdesc.json": { json: { name: "longdesc", desc: longDesc } },
+      "formula/longdesc.json": { json: { desc: longDesc, name: "longdesc" } },
     });
     const out = await infoCommand(["longdesc", "--full"]);
     expect(out.descChars).toBeUndefined();
@@ -53,7 +56,7 @@ describe("info (formula)", () => {
   it("shows short caveats inline without needing --full", async () => {
     mockFetch({
       "formula/withcaveats.json": {
-        json: { name: "withcaveats", caveats: "Some setup instructions." },
+        json: { caveats: "Some setup instructions.", name: "withcaveats" },
       },
     });
     const out = await infoCommand(["withcaveats"]);
@@ -64,13 +67,15 @@ describe("info (formula)", () => {
   it("truncates long caveats to a preview and hints --full", async () => {
     const longCaveats = "word ".repeat(100); // ~500 chars
     mockFetch({
-      "formula/longcaveats.json": { json: { name: "longcaveats", caveats: longCaveats } },
+      "formula/longcaveats.json": {
+        json: { caveats: longCaveats, name: "longcaveats" },
+      },
     });
     const out = await infoCommand(["longcaveats"]);
     expect((out.caveats as string).endsWith("…")).toBe(true);
     expect((out.caveats as string).length).toBeLessThan(longCaveats.length);
     expect(out.help).toContain(
-      "Run `homebrew-axi info longcaveats --full` to see the complete caveats",
+      "Run `homebrew-axi info longcaveats --full` to see the complete caveats"
     );
 
     const full = await infoCommand(["longcaveats", "--full"]);
@@ -82,11 +87,11 @@ describe("info (formula)", () => {
     mockFetch({
       "formula/dep.json": {
         json: {
-          name: "dep",
           deprecated: true,
           deprecation_reason: "unmaintained",
-          disabled: true,
           disable_reason: "does not build",
+          disabled: true,
+          name: "dep",
         },
       },
     });
@@ -98,10 +103,14 @@ describe("info (formula)", () => {
   it("opts into extra fields beyond the default schema via --fields", async () => {
     mockFetch({
       "formula/extra.json": {
-        json: { name: "extra", aliases: ["ex"], keg_only: true, desc: "d" },
+        json: { aliases: ["ex"], desc: "d", keg_only: true, name: "extra" },
       },
     });
-    const out = await infoCommand(["extra", "--fields", "aliases,keg_only,missing_field"]);
+    const out = await infoCommand([
+      "extra",
+      "--fields",
+      "aliases,keg_only,missing_field",
+    ]);
     expect(out.aliases).toEqual(["ex"]);
     expect(out.keg_only).toBe(true);
     expect(out.missing_field).toBeUndefined();
@@ -109,14 +118,16 @@ describe("info (formula)", () => {
 
   it("does not let --fields override an already-populated default field", async () => {
     mockFetch({
-      "formula/extra2.json": { json: { name: "extra2", desc: "real desc" } },
+      "formula/extra2.json": { json: { desc: "real desc", name: "extra2" } },
     });
     const out = await infoCommand(["extra2", "--fields", "desc"]);
     expect(out.desc).toBe("real desc");
   });
 
   it("requires a package name", async () => {
-    await expect(infoCommand([])).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
+    await expect(infoCommand([])).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
   });
 
   it("rejects unknown flags", async () => {
@@ -127,13 +138,17 @@ describe("info (formula)", () => {
 
   it("translates a 404 into NOT_FOUND", async () => {
     mockFetch({ "formula/nope.json": { status: 404 } });
-    await expect(infoCommand(["nope"])).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(infoCommand(["nope"])).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 });
 
 describe("info (cask)", () => {
   it("fetches the cask endpoint and returns cask-shaped fields", async () => {
-    mockFetch({ "cask/visual-studio-code.json": { json: fixture("vscode-cask.json") } });
+    mockFetch({
+      "cask/visual-studio-code.json": { json: fixture("vscode-cask.json") },
+    });
     const out = await infoCommand(["visual-studio-code", "--cask"]);
     expect(out.name).toBe("visual-studio-code");
     expect(out.title).toBe("Microsoft Visual Studio Code");

@@ -8,7 +8,10 @@ afterEach(() => vi.unstubAllGlobals());
 
 function fixture(name: string): unknown {
   return JSON.parse(
-    readFileSync(fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url)), "utf-8"),
+    readFileSync(
+      fileURLToPath(new URL(`../fixtures/${name}`, import.meta.url)),
+      "utf-8"
+    )
   );
 }
 
@@ -30,7 +33,7 @@ describe("deps", () => {
   it("returns a definitive empty state when there are no dependencies", async () => {
     mockFetch({
       "formula/nodeps.json": {
-        json: { name: "nodeps", dependencies: [], build_dependencies: [] },
+        json: { build_dependencies: [], dependencies: [], name: "nodeps" },
       },
     });
     const out = await depsCommand(["nodeps"]);
@@ -38,7 +41,9 @@ describe("deps", () => {
   });
 
   it("requires a formula name", async () => {
-    await expect(depsCommand([])).rejects.toMatchObject({ code: "VALIDATION_ERROR" });
+    await expect(depsCommand([])).rejects.toMatchObject({
+      code: "VALIDATION_ERROR",
+    });
   });
 
   it("rejects unknown flags", async () => {
@@ -49,6 +54,8 @@ describe("deps", () => {
 
   it("translates a 404 into NOT_FOUND", async () => {
     mockFetch({ "formula/nope.json": { status: 404 } });
-    await expect(depsCommand(["nope"])).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(depsCommand(["nope"])).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 });
