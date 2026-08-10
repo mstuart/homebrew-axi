@@ -17,6 +17,14 @@ homebrew-axi never installs, upgrades, uninstalls, taps, or pins — read-only.
 `;
 
 export const COMMAND_HELP: Record<string, string> = {
+  deps: `homebrew-axi deps <name>
+
+List a formula's build-time and runtime dependencies, plus a total count.
+
+Examples:
+  homebrew-axi deps git
+  homebrew-axi deps wget
+`,
   info: `homebrew-axi info <name> [--cask] [--full] [--fields a,b,c]
 
 Show formula (or cask, with --cask) details: description, homepage, license, stable
@@ -34,13 +42,14 @@ Examples:
   homebrew-axi info git --full
   homebrew-axi info wget --fields aliases,keg_only
 `,
-  deps: `homebrew-axi deps <name>
+  installed: `homebrew-axi installed [--limit N]
 
-List a formula's build-time and runtime dependencies, plus a total count.
+List every installed formula and cask with its installed version, plus a count.
+Capped to 50 rows by default (500 max); pass --limit to see more.
 
 Examples:
-  homebrew-axi deps git
-  homebrew-axi deps wget
+  homebrew-axi installed
+  homebrew-axi installed --limit 200
 `,
   outdated: `homebrew-axi outdated [--limit N]
 
@@ -50,15 +59,6 @@ Capped to 50 rows by default (500 max); pass --limit to see more.
 Examples:
   homebrew-axi outdated
   homebrew-axi outdated --limit 200
-`,
-  installed: `homebrew-axi installed [--limit N]
-
-List every installed formula and cask with its installed version, plus a count.
-Capped to 50 rows by default (500 max); pass --limit to see more.
-
-Examples:
-  homebrew-axi installed
-  homebrew-axi installed --limit 200
 `,
   search: `homebrew-axi search "<query>" [--limit N]
 

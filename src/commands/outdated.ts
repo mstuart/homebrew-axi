@@ -6,11 +6,17 @@ const USAGE = "homebrew-axi outdated [--limit N]";
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 500;
 
-export async function outdatedCommand(args: string[] = []): Promise<Record<string, unknown>> {
+export async function outdatedCommand(
+  args: string[] = []
+): Promise<Record<string, unknown>> {
   const { positionals, flags } = parseFlags(args);
   assertKnownFlags(flags, ["limit"], USAGE);
   if (positionals.length > 0) {
-    throw new AxiError(`unexpected argument "${positionals[0]}"`, "VALIDATION_ERROR", [USAGE]);
+    throw new AxiError(
+      `unexpected argument "${positionals[0]}"`,
+      "VALIDATION_ERROR",
+      [USAGE]
+    );
   }
 
   const limit = parseLimit(flags.limit, DEFAULT_LIMIT, MAX_LIMIT);
@@ -22,15 +28,20 @@ export async function outdatedCommand(args: string[] = []): Promise<Record<strin
   }
 
   const shown = rows.slice(0, limit);
-  const help = ["Run `homebrew-axi info <name>` for details on a specific package"];
+  const help = [
+    "Run `homebrew-axi info <name>` for details on a specific package",
+  ];
   if (shown.length < rows.length && limit < MAX_LIMIT) {
     const more = Math.min(limit + 50, MAX_LIMIT);
     help.push(`Run \`homebrew-axi outdated --limit ${more}\` for more results`);
   }
 
   return {
-    count: shown.length === rows.length ? rows.length : `${shown.length} of ${rows.length} total`,
-    outdated: shown,
+    count:
+      shown.length === rows.length
+        ? rows.length
+        : `${shown.length} of ${rows.length} total`,
     help,
+    outdated: shown,
   };
 }

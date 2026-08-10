@@ -12,12 +12,12 @@
     "packages",
     "toon"
   ],
-  "license": "MIT",
-  "author": "Mark Stuart",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mstuart/homebrew-axi.git"
   },
+  "license": "MIT",
+  "author": "Mark Stuart",
   "type": "module",
   "bin": {
     "homebrew-axi": "dist/bin/homebrew-axi.js"
@@ -28,21 +28,15 @@
     "LICENSE",
     "README.md"
   ],
-  "publishConfig": {
-    "access": "public"
-  },
-  "engines": {
-    "node": ">=20"
-  },
   "scripts": {
     "build": "tsc",
     "build:skill": "tsx scripts/build-skill.ts",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "dev": "tsx bin/homebrew-axi.ts",
-    "prepublishOnly": "npm run build",
     "check": "ultracite check",
-    "fix": "ultracite fix"
+    "dev": "tsx bin/homebrew-axi.ts",
+    "fix": "ultracite fix",
+    "prepublishOnly": "npm run build",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "axi-sdk-js": "^0.1.10"
@@ -54,5 +48,11 @@
     "typescript": "^5.7.0",
     "ultracite": "7.10.2",
     "vitest": "^4.1.10"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

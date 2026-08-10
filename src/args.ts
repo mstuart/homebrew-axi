@@ -1,8 +1,8 @@
 import { AxiError } from "axi-sdk-js";
 
 export interface ParsedArgs {
-  positionals: string[];
   flags: Record<string, string | boolean>;
+  positionals: string[];
 }
 
 /**
@@ -11,11 +11,14 @@ export interface ParsedArgs {
  * Names in `booleans` are always treated as boolean even when followed by a non-flag token.
  * Everything else is a positional.
  */
-export function parseFlags(args: string[], booleans: string[] = []): ParsedArgs {
+export function parseFlags(
+  args: string[],
+  booleans: string[] = []
+): ParsedArgs {
   const positionals: string[] = [];
   const flags: Record<string, string | boolean> = {};
 
-  for (let i = 0; i < args.length; i++) {
+  for (let i = 0; i < args.length; i += 1) {
     const token = args[i];
     if (!token.startsWith("--")) {
       positionals.push(token);
@@ -30,15 +33,19 @@ export function parseFlags(args: string[], booleans: string[] = []): ParsedArgs 
     }
 
     const next = args[i + 1];
-    if (next !== undefined && !next.startsWith("--") && !booleans.includes(body)) {
+    if (
+      next !== undefined &&
+      !next.startsWith("--") &&
+      !booleans.includes(body)
+    ) {
       flags[body] = next;
-      i++;
+      i += 1;
     } else {
       flags[body] = true;
     }
   }
 
-  return { positionals, flags };
+  return { flags, positionals };
 }
 
 /**
@@ -49,7 +56,7 @@ export function parseFlags(args: string[], booleans: string[] = []): ParsedArgs 
 export function assertKnownFlags(
   flags: Record<string, string | boolean>,
   allowed: string[],
-  commandUsage: string,
+  commandUsage: string
 ): void {
   const unknown = Object.keys(flags).find((name) => !allowed.includes(name));
   if (unknown) {
@@ -64,11 +71,15 @@ export function assertKnownFlags(
 export function parseLimit(
   value: string | boolean | undefined,
   fallback: number,
-  max: number,
+  max: number
 ): number {
-  if (typeof value !== "string") return fallback;
+  if (typeof value !== "string") {
+    return fallback;
+  }
   const parsed = Number.parseInt(value, 10);
-  if (!Number.isFinite(parsed) || parsed < 1) return fallback;
+  if (!Number.isFinite(parsed) || parsed < 1) {
+    return fallback;
+  }
   return Math.min(parsed, max);
 }
 
@@ -76,7 +87,7 @@ export function parseLimit(
 export function splitByLimit<T>(
   first: T[],
   second: T[],
-  limit: number,
+  limit: number
 ): { first: T[]; second: T[] } {
   const firstShown = first.slice(0, limit);
   const secondShown = second.slice(0, Math.max(0, limit - firstShown.length));

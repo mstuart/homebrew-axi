@@ -27,13 +27,15 @@ describe("parseFlags", () => {
 
 describe("assertKnownFlags", () => {
   it("passes when all flags are allowed", () => {
-    expect(() => assertKnownFlags({ full: true, cask: true }, ["full", "cask"], "usage")).not.toThrow();
+    expect(() =>
+      assertKnownFlags({ cask: true, full: true }, ["full", "cask"], "usage")
+    ).not.toThrow();
   });
 
   it("throws VALIDATION_ERROR on an unrecognized flag", () => {
-    expect(() => assertKnownFlags({ stat: "x" }, ["full", "cask"], "usage")).toThrowError(
-      expect.objectContaining({ code: "VALIDATION_ERROR" }),
-    );
+    expect(() =>
+      assertKnownFlags({ stat: "x" }, ["full", "cask"], "usage")
+    ).toThrowError(expect.objectContaining({ code: "VALIDATION_ERROR" }));
   });
 });
 

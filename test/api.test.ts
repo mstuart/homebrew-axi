@@ -8,7 +8,10 @@ afterEach(() => vi.unstubAllGlobals());
 
 function fixture(name: string): unknown {
   return JSON.parse(
-    readFileSync(fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url)), "utf-8"),
+    readFileSync(
+      fileURLToPath(new URL(`./fixtures/${name}`, import.meta.url)),
+      "utf-8"
+    )
   );
 }
 
@@ -34,23 +37,31 @@ describe("fetchFormula", () => {
 
   it("translates a 404 into NOT_FOUND", async () => {
     mockFetch({ "formula/nope.json": { status: 404 } });
-    await expect(fetchFormula("nope")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(fetchFormula("nope")).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 
   it("translates a network failure into NETWORK", async () => {
     mockFetch({ "formula/wget.json": { reject: true } });
-    await expect(fetchFormula("wget")).rejects.toMatchObject({ code: "NETWORK" });
+    await expect(fetchFormula("wget")).rejects.toMatchObject({
+      code: "NETWORK",
+    });
   });
 
   it("translates a non-404 non-ok response into API_ERROR", async () => {
     mockFetch({ "formula/wget.json": { status: 500 } });
-    await expect(fetchFormula("wget")).rejects.toMatchObject({ code: "API_ERROR" });
+    await expect(fetchFormula("wget")).rejects.toMatchObject({
+      code: "API_ERROR",
+    });
   });
 });
 
 describe("fetchCask", () => {
   it("returns the parsed cask JSON", async () => {
-    mockFetch({ "cask/visual-studio-code.json": { json: fixture("vscode-cask.json") } });
+    mockFetch({
+      "cask/visual-studio-code.json": { json: fixture("vscode-cask.json") },
+    });
     const cask = await fetchCask("visual-studio-code");
     expect(cask.token).toBe("visual-studio-code");
     expect(cask.version).toBe("1.132.0");
@@ -59,14 +70,18 @@ describe("fetchCask", () => {
 
   it("translates a 404 into NOT_FOUND", async () => {
     mockFetch({ "cask/nope.json": { status: 404 } });
-    await expect(fetchCask("nope")).rejects.toMatchObject({ code: "NOT_FOUND" });
+    await expect(fetchCask("nope")).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
   });
 });
 
 describe("installsForPeriod", () => {
   it("sums every key belonging to the package name", () => {
-    const analytics = { install: { "30d": { wget: 17288, "wget --HEAD": 29 } } };
-    expect(installsForPeriod(analytics, "30d", "wget")).toBe(17317);
+    const analytics = {
+      install: { "30d": { wget: 17_288, "wget --HEAD": 29 } },
+    };
+    expect(installsForPeriod(analytics, "30d", "wget")).toBe(17_317);
   });
 
   it("returns undefined when the period is missing", () => {
