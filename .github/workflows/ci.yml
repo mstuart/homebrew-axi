@@ -23,3 +23,18 @@ jobs:
       - run: npm run build
       - run: npm run build:skill -- --check
       - run: npm test
+      - name: Pack dry run
+        run: npm pack --dry-run
+      - name: Linux no-brew BREW_MISSING smoke
+        run: |
+          if command -v brew >/dev/null 2>&1; then
+            echo "brew unexpectedly exists on the Linux runner; this smoke must validate the no-brew path."
+            exit 1
+          fi
+          set +e
+          output=$(node dist/bin/homebrew-axi.js installed 2>&1)
+          status=$?
+          set -e
+          echo "$output"
+          test "$status" -eq 1
+          grep -q "BREW_MISSING" <<< "$output"
