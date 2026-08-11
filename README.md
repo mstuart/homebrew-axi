@@ -200,6 +200,40 @@ The live integration suite (`test/live.integration.test.ts`) calls the real form
 and, if `brew` is on PATH, the real `brew` CLI. It skips cleanly rather than failing when either
 is unavailable.
 
+### Version, tags, and release safety
+
+`package.json`, `package-lock.json`, the packed CLI, global installs, and `npx --package` all use
+the same package version. This repository is currently reconciled to `homebrew-axi@0.1.1`, which is
+the latest version published on npm; that source-only reconciliation does not republish the package.
+
+Releases are manual via `.github/workflows/release.yml`. The workflow bumps the version locally,
+verifies that the target npm version is not already published, runs tests and a pack check, publishes
+to npm with provenance, then pushes the release commit and git tag atomically. This ordering avoids
+leaving a public git tag for a version that failed to publish.
+
+If npm publishing succeeds but the later git push or GitHub release step fails, recover without
+republishing: create a normal commit that sets `package.json` and `package-lock.json` to the already
+published version, push that commit and a matching `vX.Y.Z` tag, then create the GitHub release notes
+for that tag.
+
+### Verifying npm provenance
+
+This package is published with npm trusted publishing and provenance. To verify an installed or
+published artifact, use npm's provenance-aware audit command:
+
+```sh
+npm audit signatures homebrew-axi@0.1.1
+```
+
+You can also inspect the registry metadata before installing:
+
+```sh
+npm view homebrew-axi version dist.integrity dist.provenance --json
+```
+
+A release is expected to have an npm provenance statement linked to the GitHub Actions release
+workflow run.
+
 ## License
 
 [MIT](LICENSE)

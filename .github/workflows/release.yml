@@ -3,6 +3,8 @@ name: Release
 # Manual release: run from the Actions tab (or `gh workflow run release.yml -f bump=patch`).
 # Publishes to npm with provenance via OIDC trusted publishing — no NPM_TOKEN secret.
 # One-time setup per package: npmjs.com → package → Settings → Trusted Publisher → GitHub Actions.
+# Failure ordering is intentional: npm publish happens before pushing the release commit/tag,
+# so a registry failure cannot leave a public git tag for an unpublished version.
 
 on:
   workflow_dispatch:
@@ -41,17 +43,25 @@ jobs:
         run: |
           git config user.name "Mark Stuart"
           git config user.email "742884+mstuart@users.noreply.github.com"
-      - name: Bump version and tag
+      - name: Bump version and tag locally
         id: bump
         run: |
           tag=$(npm version ${{ inputs.bump }} -m 'chore(release): %s')
+          version=${tag#v}
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
-      - name: Push commit and tag
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      - name: Ensure version is not already published
         run: |
-          git push origin "HEAD:${{ github.ref_name }}"
-          git push origin "${{ steps.bump.outputs.tag }}"
+          if npm view "homebrew-axi@${{ steps.bump.outputs.version }}" version >/dev/null 2>&1; then
+            echo "homebrew-axi@${{ steps.bump.outputs.version }} is already published; refusing to continue."
+            exit 1
+          fi
+      - name: Pack check
+        run: npm pack --dry-run
       - name: Publish to npm (provenance, OIDC — no token)
         run: npm publish --provenance --access public
+      - name: Push release commit and tag
+        run: git push --atomic origin "HEAD:${{ github.ref_name }}" "${{ steps.bump.outputs.tag }}"
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
