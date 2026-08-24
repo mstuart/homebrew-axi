@@ -42,7 +42,7 @@
     "axi-sdk-js": "^0.1.10"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.8",
+    "@biomejs/biome": "2.5.9",
     "@types/node": "^22.0.0",
     "tsx": "^4.19.0",
     "typescript": "^7.0.2",
