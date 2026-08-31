@@ -46,7 +46,7 @@
     "@types/node": "^22.0.0",
     "tsx": "^4.19.0",
     "typescript": "^7.0.2",
-    "ultracite": "7.10.6",
+    "ultracite": "7.10.7",
     "vitest": "^4.1.10"
   },
   "engines": {
