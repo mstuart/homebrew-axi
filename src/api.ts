@@ -60,6 +60,11 @@ async function getJson<T>(url: string): Promise<T> {
     error.cause = cause;
     throw error;
   }
+  if (!response.ok) {
+    await response.body?.cancel().catch(() => {
+      // Preserve the HTTP error when stream cleanup fails.
+    });
+  }
   if (response.status === 404) {
     const error = new Error("HTTP 404") as Error & { status?: number };
     error.status = 404;

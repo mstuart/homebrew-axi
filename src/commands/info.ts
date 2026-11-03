@@ -25,6 +25,14 @@ export async function infoCommand(
     ]);
   }
 
+  if (positionals.length > 1) {
+    throw new AxiError(
+      `unexpected argument "${positionals[1]}"`,
+      "VALIDATION_ERROR",
+      [USAGE]
+    );
+  }
+
   const full = flags.full === true;
   const fields = parseFields(flags.fields);
   return flags.cask === true

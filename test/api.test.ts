@@ -89,3 +89,41 @@ describe("installsForPeriod", () => {
     expect(installsForPeriod(undefined, "30d", "wget")).toBeUndefined();
   });
 });
+
+it.each([404, 503])(
+  "cancels unread HTTP %i response bodies",
+  async (status) => {
+    const cancel = vi.fn();
+    vi.stubGlobal(
+      "fetch",
+      vi
+        .fn()
+        .mockResolvedValue(
+          new Response(new ReadableStream({ cancel }), { status })
+        )
+    );
+    await expect(fetchFormula("missing")).rejects.toMatchObject({
+      code: status === 404 ? "NOT_FOUND" : "API_ERROR",
+    });
+    expect(cancel).toHaveBeenCalledOnce();
+  }
+);
+
+it("preserves HTTP error classification when body cancellation fails", async () => {
+  vi.stubGlobal(
+    "fetch",
+    vi.fn().mockResolvedValue(
+      new Response(
+        new ReadableStream({
+          cancel() {
+            throw new Error("cleanup failed");
+          },
+        }),
+        { status: 503 }
+      )
+    )
+  );
+  await expect(fetchFormula("missing")).rejects.toMatchObject({
+    code: "API_ERROR",
+  });
+});

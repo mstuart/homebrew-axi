@@ -54,3 +54,16 @@ describe("parseLimit", () => {
     expect(parseLimit("30", 20, 100)).toBe(30);
   });
 });
+
+it("rejects prototype-named unknown flags", () => {
+  for (const args of [
+    ["--__proto__=x"],
+    ["--__proto__", "x"],
+    ["--__proto__"],
+  ]) {
+    const { flags } = parseFlags(args);
+    expect(() => assertKnownFlags(flags, [], "usage")).toThrowError(
+      expect.objectContaining({ code: "VALIDATION_ERROR" })
+    );
+  }
+});

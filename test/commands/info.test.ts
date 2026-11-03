@@ -157,3 +157,12 @@ describe("info (cask)", () => {
     expect(out.license).toBeUndefined();
   });
 });
+
+it("rejects extra package names before fetching", async () => {
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  await expect(infoCommand(["wget", "git"])).rejects.toMatchObject({
+    code: "VALIDATION_ERROR",
+  });
+  expect(fetch).not.toHaveBeenCalled();
+});

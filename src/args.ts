@@ -16,7 +16,7 @@ export function parseFlags(
   booleans: string[] = []
 ): ParsedArgs {
   const positionals: string[] = [];
-  const flags: Record<string, string | boolean> = {};
+  const flags: Record<string, string | boolean> = Object.create(null);
 
   for (let i = 0; i < args.length; i += 1) {
     const token = args[i];
