@@ -59,3 +59,12 @@ describe("deps", () => {
     });
   });
 });
+
+it("rejects extra package names before fetching", async () => {
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  await expect(depsCommand(["wget", "git"])).rejects.toMatchObject({
+    code: "VALIDATION_ERROR",
+  });
+  expect(fetch).not.toHaveBeenCalled();
+});

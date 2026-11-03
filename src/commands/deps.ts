@@ -16,6 +16,14 @@ export async function depsCommand(
     ]);
   }
 
+  if (positionals.length > 1) {
+    throw new AxiError(
+      `unexpected argument "${positionals[1]}"`,
+      "VALIDATION_ERROR",
+      [USAGE]
+    );
+  }
+
   const formula = await fetchFormula(name);
   const buildDependencies = formula.build_dependencies ?? [];
   const dependencies = formula.dependencies ?? [];
