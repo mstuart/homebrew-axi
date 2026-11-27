@@ -59,7 +59,7 @@ export function assertKnownFlags(
   commandUsage: string
 ): void {
   const unknown = Object.keys(flags).find((name) => !allowed.includes(name));
-  if (unknown) {
+  if (unknown !== undefined) {
     throw new AxiError(`unknown flag --${unknown}`, "VALIDATION_ERROR", [
       `valid flags: ${allowed.map((f) => `--${f}`).join(", ") || "(none)"}`,
       commandUsage,

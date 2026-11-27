@@ -43,7 +43,7 @@ export async function installedCommand(
 
   const limit = parseLimit(flags.limit, DEFAULT_LIMIT, MAX_LIMIT);
   const [formulaeOut, caskOut] = await Promise.all([
-    brewExec(["list", "--versions"]),
+    brewExec(["list", "--formula", "--versions"]),
     brewExec(["list", "--cask", "--versions"]),
   ]);
 
