@@ -41,6 +41,11 @@ export async function infoCommand(
 }
 
 function parseFields(value: string | boolean | undefined): string[] {
+  if (typeof value === "boolean") {
+    throw new AxiError("--fields requires a field list", "VALIDATION_ERROR", [
+      USAGE,
+    ]);
+  }
   if (typeof value !== "string") {
     return [];
   }
@@ -55,7 +60,8 @@ function withDescription(
   help: string[],
   name: string,
   desc: string | undefined,
-  full: boolean
+  full: boolean,
+  caskFlag = false
 ): void {
   if (!desc) {
     return;
@@ -68,7 +74,7 @@ function withDescription(
   out.desc = `${collapsed.slice(0, DESC_PREVIEW).trimEnd()} …`;
   out.descChars = collapsed.length;
   help.push(
-    `Run \`homebrew-axi info ${name} --full\` for the complete description`
+    `Run \`homebrew-axi info ${name}${caskFlag ? " --cask" : ""} --full\` for the complete description`
   );
 }
 
@@ -198,7 +204,7 @@ function formatCask(
   if (cask.name && cask.name.length > 0) {
     out.title = cask.name[0];
   }
-  withDescription(out, help, cask.token, cask.desc, full);
+  withDescription(out, help, cask.token, cask.desc, full, true);
   if (cask.homepage) {
     out.homepage = cask.homepage;
   }
